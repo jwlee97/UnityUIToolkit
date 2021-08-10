@@ -703,12 +703,12 @@ def main():
     num_panels = 4
     color_harmony_template = 93.6
 
-    colorfulness = 0.3
-    edgeness = 0.3
-    fitts_law = 0.1
-    ce = 0.1
-    muscle_act = 0.1
-    rula = 0.1
+    colorfulness = 0.0
+    edgeness = 0.0
+    fitts_law = 0.0
+    ce = 0.33
+    muscle_act = 0.33
+    rula = 0.33
 
     opt = UIOptimizer(byte_arr, np.array(img_dim), np.array(panel_dim), num_panels, occlusion, 
                       colorfulness, edgeness, fitts_law, ce, muscle_act, rula)

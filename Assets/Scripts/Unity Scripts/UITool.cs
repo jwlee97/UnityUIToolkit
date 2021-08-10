@@ -123,7 +123,7 @@ public class UITool : MonoBehaviour {
         GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
         cube.tag = "Panel";
     
-        cube.transform.position = new Vector3(panelPos[1], panelPos[0], 0.05f);
+        cube.transform.position = new Vector3(panelPos[1], panelPos[0], 0.5f);
         cube.transform.localScale = new Vector3(width, height, 0.0001f);
         var cubeRenderer = cube.GetComponent<Renderer>();
         cubeRenderer.material.SetColor("_Color", panelColor);

@@ -8,7 +8,7 @@ def get_panel_info(request):
     color_harmony_template = 93.6
     img_dim = [504, 896]
     panel_dim = []
-    image_file = request['imageFile']
+    image_file = request['imageBufferFile']
     num_panels = request["numPanels"]
     occlusion = request["occlusion"]
     color_harmony = request["colorHarmony"]
