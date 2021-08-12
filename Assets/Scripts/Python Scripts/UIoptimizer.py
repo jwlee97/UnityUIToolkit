@@ -720,7 +720,7 @@ def main():
     dir_path = os.path.dirname(os.path.realpath(__file__))
     f = open(dir_path + "\\context_img_buff_1623145003.log", "r")
     byte_arr = bytes(f.read(), 'utf-8')
-    out_file = dir_path + '\\out\\' + 'out.png'
+    out_file = dir_path + '\\output_images\\' + 'out.png'
     img_path = "context_img_1623145003.png"
     img = cv2.imread(img_path)
 
@@ -734,9 +734,9 @@ def main():
     colorfulness = 0.0
     edgeness = 0.0
     fitts_law = 0.0
-    ce = 0.33
-    muscle_act = 0.33
-    rula = 0.33
+    ce = 0.82
+    muscle_act = 0.0
+    rula = 0.0
 
     opt = UIOptimizer(byte_arr, np.array(img_dim), np.array(panel_dim), num_panels, occlusion, 
                       colorfulness, edgeness, fitts_law, ce, muscle_act, rula)

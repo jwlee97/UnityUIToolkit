@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import time
+import os
 
 # Bind the socket to the port
 #server_address = ('localhost', 11000)
@@ -8,9 +9,6 @@ import time
 #erver_address = ('129.169.34.183', 11002)
 #server_address = ('192.168.1.111', 11003)
 #server_address = ('localhost', 11003)
-
-
-directory = 'C:\\Users\\2020\\UNITY\\HololensComms\\Assets\\Images\\'
 
 class Server:
     def __init__(self, ip_addr, port, buff_size):
@@ -34,7 +32,7 @@ class Server:
                 #print('Received: %r' % data.decode())
                 self.image_data_buffer.append(data)
                 self.image_data_bytes_recvd += len(data)
-                print('Bytes received: %d' % len(data))
+                print('Bytes received from Hololens: %d' % len(data))
             except asyncio.TimeoutError:
                 print('Timeout!')
                 break
@@ -47,7 +45,7 @@ class Server:
         img_meta_data = ""
         timestamp = ""
         
-        print('Image data buffer: %d' % len(self.image_data_buffer))
+        print('Image data buffer from Hololens: %d' % len(self.image_data_buffer))
         print('Image data bytes received: %d' % self.image_data_bytes_recvd)
         self.image_data_concat = b''.join(self.image_data_buffer)
 
@@ -74,32 +72,17 @@ class Server:
 
 
 def main():
+    #directory = 'C:\\Users\\2020\\UNITY\\HololensComms\\Assets\\Images\\'
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    directory = dir_path + "\\input_images\\"
+
     server = Server('169.254.155.249', 9090, 10800)
-    message = 'Starting up server'
+    message = 'Starting up Hololens socket...'
     loop = asyncio.get_event_loop()
     server.tcp_echo_client(message, loop)
     loop.run_until_complete(server.tcp_echo_client(message, loop))
     loop.close()
     server.write_image_file(directory)
-
-    #img_dim = [504, 896]
-    #patch_dim = [63, 112]
-    #label_dim = [0.2,0.05]
-    #adapt = ad.Adapt(np.array(img_dim), np.array(patch_dim), np.array(label_dim))
-
-    #(labelPos, uvPlace) = adapt.place(server.image_data_concat)
-    #(labelColor, textColor) = adapt.color(uvPlace)
-
-    #adaptPayload = adapt.msgString(labelPos, labelColor, textColor)
-    #print(adaptPayload)
-    
-    #out_filename = directory + 'out.txt'
-    #print('Saving info to %s' % out_filename)
-    #with open(out_filename, "w") as f:
-    #    line = str(label_dim[0]) + ',' + str(label_dim[1]) + ';' + adaptPayload
-    #    f.write(line)
-    
-    #f.close()
     
 
 if __name__ == "__main__":

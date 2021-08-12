@@ -66,7 +66,7 @@ public class PhotoCapture : MonoBehaviour {
     public void TakePhoto() {
         if (!initialized_)
         {
-            Debug.Log("PhotoCapture not initialized...");
+            Debug.Log("PhotoCapture not initialized.");
             return;
         }
         // Activate the camera
@@ -92,7 +92,7 @@ public class PhotoCapture : MonoBehaviour {
         photoCaptureFrame.TryGetProjectionMatrix(out projM);
 
         string imageDataBase64 = Convert.ToBase64String(imageBufferList.ToArray());
-        Debug.Log("len image: " + System.Text.Encoding.UTF8.GetByteCount(imageDataBase64));
+        Debug.Log("Len image: " + System.Text.Encoding.UTF8.GetByteCount(imageDataBase64));
 
         ImageObject imageObject = new ImageObject();
         imageObject.c2wM = c2wM;

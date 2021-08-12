@@ -13,7 +13,6 @@ using UnityEngine.UI;
 
 //Able to act as a reciever 
 public class HololensSocket : MonoBehaviour {
-    public String _input = "Waiting";
 
 #if !UNITY_EDITOR
     StreamSocket socket;
@@ -37,7 +36,7 @@ public class HololensSocket : MonoBehaviour {
 
 #if !UNITY_EDITOR
     private async void Listener_Start() {
-        Debug.Log("Listener started");
+        Debug.Log("Listener started!");
         try {
             await listener.BindServiceNameAsync(port);
         } catch (Exception e) {
@@ -45,15 +44,15 @@ public class HololensSocket : MonoBehaviour {
             print("Error: " + e.Message);
         }
 
-        Debug.Log("Listening");
+        Debug.Log("Listening for connection...");
     }
 
     private async void Listener_ConnectionReceived(StreamSocketListener sender, StreamSocketListenerConnectionReceivedEventArgs a) {
-        Debug.Log("Listening");
+        Debug.Log("Listening for connection...");
 
         try {
             args = a;
-            print("Connection established");
+            print("Connection established!");
 
             //while (true) {
             //    using (var dw = new DataWriter(a.Socket.OutputStream)) {
@@ -76,14 +75,13 @@ public class HololensSocket : MonoBehaviour {
     }
 
     public void SendImageData(List<byte> imageData) {
-        Debug.Log("list n-bytes: " + imageData.Count);
+        Debug.Log("List image n-bytes: " + imageData.Count);
 
         string imageDataBase64 = Convert.ToBase64String(imageData.ToArray());
         int len = System.Text.Encoding.UTF8.GetByteCount(imageDataBase64);
 
-        Debug.Log("encoded n-bytes: " + len);
+        Debug.Log("Encoded image n-bytes: " + len);
 
-        _input = imageDataBase64;
         sendData(imageDataBase64);
     }
 

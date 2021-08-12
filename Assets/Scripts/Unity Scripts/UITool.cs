@@ -56,7 +56,7 @@ public class UITool : MonoBehaviour {
         classScene = GameObject.FindGameObjectWithTag("classScene");
         officeScene = GameObject.FindGameObjectWithTag("officeScene");
 
-        Debug.Log("UI tool initialized.");
+        Debug.Log("UI tool initialized!");
         DeactivateScenes();
     }
 
@@ -68,7 +68,7 @@ public class UITool : MonoBehaviour {
 
     public void SubmitConstraints() {
         StartCoroutine(CreateRequest());
-        Debug.Log("Sending data to Python server.");
+        Debug.Log("Sending data to Python socket.");
     }
 
     public void CreateUI() {
@@ -100,7 +100,7 @@ public class UITool : MonoBehaviour {
         _pythonNetworking.PerformRequest("C", requestJson);
         yield return new WaitUntil(() => _pythonNetworking.requestResult != null);
         panelData = JsonConvert.DeserializeObject<List<string>>(_pythonNetworking.requestResult);
-        Debug.Log("Creating request, sending UI constraint to server.");
+        Debug.Log("Creating request, sending UI constraint to Python socket.");
     }
 
     private void DestroyPanels() {
