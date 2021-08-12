@@ -70,6 +70,34 @@ class UIOptimizer:
                 for x in range(imgDim[1]):
                     self.occupancyMap[(y, x)] = 0
 
+        x_l = self.voxels[0][0]
+        y_l = self.voxels[0][1]
+        z_l = self.voxels[0][2]
+        x_u = self.voxels[0][0]
+        y_u = self.voxels[0][1]
+        z_u = self.voxels[0][2]
+
+        for i in range(self.num_panels):
+            for v in self.voxels:
+                wPos = [v[0]/100, v[1]/100, v[2]/100]
+                uv = self.w2uv(wPos)
+                min_x = int(uv[0]-self.panelDim[i][1]/2)
+                min_y = int(uv[1]-self.panelDim[i][0]/2)
+                max_x = int(uv[0]+self.panelDim[i][1]/2)
+                max_y = int(uv[1]+self.panelDim[i][0]/2)
+
+                if min_x >= 0 and min_y >= 0 and max_x < self.imgDim[1] and max_y < self.imgDim[0]:
+                    #self.voxels.append(v)
+                    if v[0] < x_l: x_l = v[0]
+                    if v[1] < y_l: y_l = v[1]
+                    if v[2] < z_l: z_l = v[2]
+                    if v[0] > x_u: x_u = v[0]
+                    if v[1] > y_u: y_u = v[1]
+                    if v[2] > z_u: z_u = v[2]
+
+        self.xl = np.array([x_l, y_l, z_l]) # lower limits in cm
+        self.xu = np.array([x_u, y_u, z_u]) # upper limits in cm
+
 
     def weighted_optimization(self):
         for i in range(self.num_panels):
@@ -697,7 +725,7 @@ def main():
     img = cv2.imread(img_path)
 
     img_dim = [504, 896]
-    panel_dim = [(0.1, 0.15), (0.05, 0.1), (0.2, 0.1), (0.1, 0.2)]
+    panel_dim = [(0.1, 0.15), (0.1, 0.1), (0.2, 0.1), (0.15, 0.1)]
     occlusion = False
     color_harmony = True
     num_panels = 4
