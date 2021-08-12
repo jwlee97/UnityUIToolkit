@@ -39,11 +39,13 @@ public class UITool : MonoBehaviour {
     private bool _clientStopped;
     private bool _requestPending;
     
+    private GameObject instructionMenu;
     private GameObject labScene;
     private GameObject classScene;
     private GameObject officeScene;
 
     public void Start() {
+        UIGenerated = false;
         _pythonNetworking = new PythonNetworking(false);
         numPanels = constraints.Length;
         panelSizes = new float[numPanels, 2];
@@ -51,7 +53,7 @@ public class UITool : MonoBehaviour {
         if (imageBufferFile == null)
             imageBufferFile = "context_img_buff_1623145003.log";
 
-        UIGenerated = false;
+        instructionMenu = GameObject.FindGameObjectWithTag("InstructionMenu");
         labScene = GameObject.FindGameObjectWithTag("labScene");
         classScene = GameObject.FindGameObjectWithTag("classScene");
         officeScene = GameObject.FindGameObjectWithTag("officeScene");
@@ -68,10 +70,10 @@ public class UITool : MonoBehaviour {
 
     public void SubmitConstraints() {
         StartCoroutine(CreateRequest());
-        Debug.Log("Sending data to Python socket.");
     }
 
     public void CreateUI() {
+        instructionMenu.SetActive(false);
         int i = 0;
         
         if (panelData != null) {
@@ -100,7 +102,7 @@ public class UITool : MonoBehaviour {
         _pythonNetworking.PerformRequest("C", requestJson);
         yield return new WaitUntil(() => _pythonNetworking.requestResult != null);
         panelData = JsonConvert.DeserializeObject<List<string>>(_pythonNetworking.requestResult);
-        Debug.Log("Creating request, sending UI constraint to Python socket.");
+        Debug.Log("Sending UI constraints to Python socket...");
     }
 
     private void DestroyPanels() {
@@ -149,7 +151,7 @@ public class UITool : MonoBehaviour {
         var value = cognitiveLoadSlider.value;
 
         if (UIGenerated == false) {
-            Debug.Log("UI not generated.");
+            Debug.Log("UI not generated yet!");
         } else {
             for (int i = 0; i < numPanels; i++) {
                 GameObject go = panels[i];

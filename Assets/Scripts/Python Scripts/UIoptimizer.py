@@ -16,7 +16,7 @@ from PIL import Image
 
 class UIOptimizer:
     def __init__(self, b64img, imgDim, panelDim, num_panels, occlusion, colorfulness, edgeness,
-                 fitts_law, ce, muscle_act, rula, arm_proper_length=33, forearm_hand_length=46, spacing=10):
+                 fitts_law, ce, muscle_act, rula, arm_proper_length=33, forearm_hand_length=46, spacing=8):
         self.imgDim = imgDim
         self.halfImgDim = imgDim / 2
         self.num_panels = num_panels

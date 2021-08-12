@@ -28,9 +28,11 @@ def get_panel_info(request):
 
     opt = ui.UIOptimizer(byte_arr, np.array(img_dim), np.array(panel_dim), num_panels, occlusion,
                             colorfulness, edgeness, fitts_law, ce, muscle_act, rula)
-        
+    
+    print("### Optimal positions for UI panels: ###")
     (labelPos, uvPlaces) = opt.weighted_optimization()
     (labelColors, textColors) = opt.color(uvPlaces)
+    print("########################################\n")
 
     if color_harmony == True:
         colors =  opt.colorHarmony(labelColors[0], color_harmony_template)
@@ -48,7 +50,7 @@ def get_panel_info(request):
     return info
 
 context = zmq.Context()
-print("Connecting with Unity toolkit...")
+print("Connecting with Unity Toolkit...")
 socket = context.socket(zmq.REP)
 socket.bind('tcp://*:5555')
 
@@ -57,9 +59,9 @@ while True:
 
     if request[0].decode('utf-8') == 'C':
         req = json.loads(request[1])
-        print("Received: ", req)
+        print("Received from Unity Toolkit: ", req)
         position = get_panel_info(req)
-        print("Sending: ", position)
+        print("Sending to Unity Toolkit: ", position)
         socket.send(json.dumps(position).encode('utf-8'))
     else:
         socket.send(b'Error')
