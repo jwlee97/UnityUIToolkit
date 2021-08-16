@@ -17,6 +17,7 @@ class Server:
 
         self.buffer_size = buff_size
         self.image_data_buffer = []
+        self.image_data_bytes = []
         self.image_data_bytes_recvd = 0
 
 
@@ -28,9 +29,9 @@ class Server:
 
         while True:
             try:
-                data = await asyncio.wait_for(reader.read(self.buffer_size), timeout=5)
+                data = await asyncio.wait_for(reader.read(self.buffer_size), timeout=15)
                 #print('Received: %r' % data.decode())
-                self.image_data_buffer.append(data)
+                self.image_data_bytes.append(data)
                 self.image_data_bytes_recvd += len(data)
                 print('Bytes received from Hololens: %d' % len(data))
             except asyncio.TimeoutError:
@@ -39,15 +40,22 @@ class Server:
 
         print('Closing socket')
         writer.close()
-        
+        self.write_image_file()
 
-    def write_image_file(self, directory):
+
+    def write_image_file(self):
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        directory = dir_path + "\\input_images\\"
+
         img_meta_data = ""
         timestamp = ""
-        
-        print('Image data buffer from Hololens: %d' % len(self.image_data_buffer))
+
         print('Image data bytes received: %d' % self.image_data_bytes_recvd)
-        self.image_data_concat = b''.join(self.image_data_buffer)
+        self.image_data_concat = b''.join(self.image_data_bytes)
+        idx = self.image_data_concat.index(b'/ffff/')
+        print(idx)
+        self.image_data_buffer = self.image_data_concat[:idx]
+        img_meta_data = self.image_data_concat[idx+6:].decode()
 
         t = time.time()
         timestamp = str(round(t))
@@ -55,7 +63,7 @@ class Server:
         img_filename = directory + '\\context_img_%s.png' % timestamp
         print('Saving img to %s' % img_filename)
         with open(img_filename, "wb") as fh:
-            fh.write(base64.decodebytes(self.image_data_concat))
+            fh.write(base64.decodebytes(self.image_data_buffer))
             fh.close()
         
         log_filename = directory + '\\context_img_%s.log' % timestamp                      
@@ -64,26 +72,21 @@ class Server:
             fh.write(img_meta_data.encode())
             fh.close()
         
-        buffer_filename = directory + '\\context_img_buff_%s.log' % timestamp  
+        buffer_filename = directory + '\\context_img_buff_%s.log' % timestamp
+        print('Saving img buffer to %s' % buffer_filename)
         with open(buffer_filename, "wb") as fh:
-            for b in self.image_data_buffer:
-                fh.write(b)
+            fh.write(self.image_data_buffer)
             fh.close()
 
 
 def main():
-    #directory = 'C:\\Users\\2020\\UNITY\\HololensComms\\Assets\\Images\\'
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    directory = dir_path + "\\input_images\\"
-
     server = Server('169.254.155.249', 9090, 10800)
     message = 'Starting up Hololens socket...'
     loop = asyncio.get_event_loop()
     server.tcp_echo_client(message, loop)
     loop.run_until_complete(server.tcp_echo_client(message, loop))
     loop.close()
-    server.write_image_file(directory)
-    
+
 
 if __name__ == "__main__":
     main()

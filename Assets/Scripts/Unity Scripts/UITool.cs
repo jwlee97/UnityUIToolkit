@@ -27,6 +27,7 @@ public class UITool : MonoBehaviour {
     public Toggle enableColorHarmony;
 
     public string imageBufferFile;
+    public string imageMetaFile;
     public float[,] panelSizes;
     public PanelConstraints[] constraints;
 
@@ -46,12 +47,15 @@ public class UITool : MonoBehaviour {
 
     public void Start() {
         UIGenerated = false;
-        _pythonNetworking = new PythonNetworking(false);
+        _pythonNetworking = new PythonNetworking();
         numPanels = constraints.Length;
         panelSizes = new float[numPanels, 2];
 
         if (imageBufferFile == null)
-            imageBufferFile = "context_img_buff_1623145003.log";
+            imageBufferFile = "context_img_buff_1629133512.log";
+        
+        if (imageMetaFile == null)
+            imageMetaFile = "context_img_1629133512.log";
 
         instructionMenu = GameObject.FindGameObjectWithTag("InstructionMenu");
         labScene = GameObject.FindGameObjectWithTag("labScene");
@@ -69,6 +73,7 @@ public class UITool : MonoBehaviour {
     }
 
     public void SubmitConstraints() {
+        Debug.Log("Submitting constraints...");
         StartCoroutine(CreateRequest());
     }
 
@@ -95,11 +100,12 @@ public class UITool : MonoBehaviour {
     }
    
     private IEnumerator CreateRequest() {
-        var request = new Serialization.ComputePositionRequest(imageBufferFile, numPanels, constraints, enableOcclusion.isOn, enableColorHarmony.isOn,
+        Debug.Log("Creating request...");
+        var request = new Serialization.ComputePositionRequest(imageBufferFile, imageMetaFile, numPanels, constraints, enableOcclusion.isOn, enableColorHarmony.isOn,
                                                                colorfulnessSlider.value, edgenessSlider.value, fittsLawSlider.value,
                                                                ceSlider.value, muscleActivationSlider.value, rulaSlider.value);
         var requestJson = JsonUtility.ToJson(request);
-        _pythonNetworking.PerformRequest("C", requestJson);
+        _pythonNetworking.PerformRequest("P", requestJson);
         yield return new WaitUntil(() => _pythonNetworking.requestResult != null);
         panelData = JsonConvert.DeserializeObject<List<string>>(_pythonNetworking.requestResult);
         Debug.Log("Sending UI constraints to Python socket...");

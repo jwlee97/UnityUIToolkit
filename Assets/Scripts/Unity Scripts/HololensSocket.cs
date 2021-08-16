@@ -53,39 +53,17 @@ public class HololensSocket : MonoBehaviour {
         try {
             args = a;
             print("Connection established!");
-
-            //while (true) {
-            //    using (var dw = new DataWriter(a.Socket.OutputStream)) {
-            //        dw.WriteString("Hello There");
-            //        await dw.StoreAsync();
-            //        dw.DetachStream();
-            //    }  
-
-            //    using (var dr = new DataReader(a.Socket.InputStream)) {
-            //        dr.InputStreamOptions = InputStreamOptions.Partial;
-            //        await dr.LoadAsync(12);
-            //        var input = dr.ReadString(12);
-            //        Debug.Log("received: " + input);
-            //        _input = input;
-            //    }
-            //}
         } catch (Exception e ) {
             Debug.Log("Disconnected! " + e);
         }
     }
 
-    public void SendImageData(List<byte> imageData) {
-        Debug.Log("List image n-bytes: " + imageData.Count);
-
-        string imageDataBase64 = Convert.ToBase64String(imageData.ToArray());
-        int len = System.Text.Encoding.UTF8.GetByteCount(imageDataBase64);
-
-        Debug.Log("Encoded image n-bytes: " + len);
-
-        sendData(imageDataBase64);
+    public void sendImageData(Serialization.ImageObject imageObject) {
+        sendData(imageObject.imageDataBase64, imageObject.c2wM, imageObject.projM);
     }
+    
 
-    public async Task sendData(string message) {
+    public async Task sendData(string imgData, string c2wM, string projM) {
         DataWriter writer;
 
         // Create the data writer object backed by the in-memory stream. 
@@ -96,7 +74,9 @@ public class HololensSocket : MonoBehaviour {
             writer.ByteOrder = Windows.Storage.Streams.ByteOrder.LittleEndian;
 
             // Gets the size of UTF-8 string.
+            string message = imgData + "/ffff/" + c2wM + ";" + projM;
             writer.MeasureString(message);
+
             // Write a string value to the output stream.
             writer.WriteString(message);
 
@@ -124,4 +104,5 @@ public class HololensSocket : MonoBehaviour {
         }
     }
 #endif
+
 }

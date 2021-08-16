@@ -1,3 +1,4 @@
+import os
 import zmq
 import json
 import UIoptimizer as ui
@@ -8,7 +9,8 @@ def get_panel_info(request):
     color_harmony_template = 93.6
     img_dim = [504, 896]
     panel_dim = []
-    image_file = request['imageBufferFile']
+    img_buff_file_name = request['imageBufferFile']
+    img_meta_file_name = request['imageMetaFile']
     num_panels = request["numPanels"]
     occlusion = request["occlusion"]
     color_harmony = request["colorHarmony"]
@@ -23,12 +25,19 @@ def get_panel_info(request):
     for c in constraints:
         panel_dim.append((c["height"], c["width"]))
 
-    f = open(image_file, "r")
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    img_buff_file = dir_path + "\\input_images\\" + img_buff_file_name
+    img_meta_file = dir_path + "\\input_images\\" + img_meta_file_name
+
+    f = open(img_buff_file, "r")
     byte_arr = bytes(f.read(), 'utf-8')
 
-    opt = ui.UIOptimizer(byte_arr, np.array(img_dim), np.array(panel_dim), num_panels, occlusion,
-                            colorfulness, edgeness, fitts_law, ce, muscle_act, rula)
-    
+    with open(img_meta_file, 'r') as f:
+        meta_data = f.read()
+
+    opt = ui.UIOptimizer(byte_arr, meta_data, np.array(img_dim), np.array(panel_dim), num_panels, occlusion,
+                         colorfulness, edgeness, fitts_law, ce, muscle_act, rula)
+        
     print("### Optimal positions for UI panels: ###")
     (labelPos, uvPlaces) = opt.weighted_optimization()
     (labelColors, textColors) = opt.color(uvPlaces)
@@ -38,7 +47,7 @@ def get_panel_info(request):
         colors =  opt.colorHarmony(labelColors[0], color_harmony_template)
     else:
         colors = labelColors
-   
+    
     for i in range(num_panels):
         dim_str = str(panel_dim[i][0]) + ',' + str(panel_dim[i][1])
         pos_str = str(labelPos[i][0]) + ',' + str(labelPos[i][1]) + ',' + str(labelPos[i][2])
@@ -49,15 +58,15 @@ def get_panel_info(request):
 
     return info
 
-context = zmq.Context()
 print("Connecting with Unity Toolkit...")
+context = zmq.Context()
 socket = context.socket(zmq.REP)
 socket.bind('tcp://*:5555')
 
 while True:
     request = socket.recv_multipart()
 
-    if request[0].decode('utf-8') == 'C':
+    if request[0].decode('utf-8') == 'P':
         req = json.loads(request[1])
         print("Received from Unity Toolkit: ", req)
         position = get_panel_info(req)

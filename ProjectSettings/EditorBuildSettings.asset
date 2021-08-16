@@ -8,13 +8,13 @@ EditorBuildSettings:
   - enabled: 0
     path: 
     guid: 00000000000000000000000000000000
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/ImageCapture.unity
     guid: 2d3a57f0b52a67c43bad1e87b154e8ad
   - enabled: 0
-    path: Assets/Scenes/HandTracking.unity
-    guid: c2e44f154bbb51046be87c4f97f52294
-  - enabled: 1
-    path: Assets/Scenes/SceneUnderstanding.unity
-    guid: 4b7ee7f387d10c24881ae2d4b13d8364
+    path: 
+    guid: 00000000000000000000000000000000
+  - enabled: 0
+    path: 
+    guid: 00000000000000000000000000000000
   m_configObjects: {}

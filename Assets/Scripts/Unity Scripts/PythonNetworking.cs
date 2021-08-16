@@ -13,15 +13,10 @@ public class PythonNetworking {
     public string requestResult;
     private bool isAvailable;
 
-    public PythonNetworking(bool sendWebCamFeed) {
+    public PythonNetworking() {
         clientStopped = false;
         var clientThread = new Thread(NetMQClient);
         clientThread.Start();
-
-        if (sendWebCamFeed) {
-            var webCamUpload = new Thread(WebCamUpload);
-            webCamUpload.Start();
-        }
     }
     
 
@@ -48,18 +43,6 @@ public class PythonNetworking {
         NetMQConfig.Cleanup();
     }
 
-    private void WebCamUpload() {
-        while (true) {
-            if (clientStopped) return;
-            if (frame == null) continue;
-            requestSocket.SendMoreFrame("F");
-            var frameBase64 = System.Convert.ToBase64String(frame);
-            requestSocket.SendFrame(frameBase64);
-            // handle result when response is sent
-            requestSocket.ReceiveFrameString();
-        }
-    }
-
     public void SetFrame(byte[] currFrame) {
         frame = currFrame;
     }
@@ -83,7 +66,6 @@ public class PythonNetworking {
         var msg = requestSocket.ReceiveFrameBytes();
         isAvailable = true;
         requestResult = System.Text.Encoding.UTF8.GetString(msg);
-        //requestResult = JsonUtility.FromJson<T>(msgString);
     }
 
     public void PerformRequest(string endpoint, string request) {

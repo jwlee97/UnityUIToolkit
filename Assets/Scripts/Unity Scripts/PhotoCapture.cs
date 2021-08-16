@@ -5,33 +5,22 @@ using System.Linq;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
+using Newtonsoft.Json;
 
 public class PhotoCapture : MonoBehaviour {
     private UnityEngine.Windows.WebCam.PhotoCapture photoCaptureObject_ = null;
     private UnityEngine.Windows.WebCam.CameraParameters cameraParameters_;
-
+    private HololensSocket socket;
     private bool initialized_ = false;
-    public bool photoTaken = false;
+    private List<string> imgData;
 
-    [System.Serializable]
-    public class ImageObject
-    {
-        public Matrix4x4 c2wM;
-        public Matrix4x4 projM;
-        public string imageDataBase64;
-    }
-
-    public HololensSocket socket;
-
-    void Start() {
+    private void Start() {
         if (socket == null)
             socket = GameObject.FindObjectOfType(typeof(HololensSocket)) as HololensSocket;
         InitializeCameraObject();
     }
 
-
     private void InitializeCameraObject() {
-
 #if !UNITY_EDITOR
         Debug.Log("Camera initialized.");
         
@@ -41,8 +30,7 @@ public class PhotoCapture : MonoBehaviour {
         cameraResolution.height = 504;
 
         // Create a PhotoCapture object
-        UnityEngine.Windows.WebCam.PhotoCapture.CreateAsync(true, delegate (UnityEngine.Windows.WebCam.PhotoCapture captureObject)
-        {
+        UnityEngine.Windows.WebCam.PhotoCapture.CreateAsync(true, delegate (UnityEngine.Windows.WebCam.PhotoCapture captureObject) {
             photoCaptureObject_ = captureObject;            
 
             cameraParameters_ = new UnityEngine.Windows.WebCam.CameraParameters();
@@ -64,14 +52,13 @@ public class PhotoCapture : MonoBehaviour {
 
     // Use this for initialization
     public void TakePhoto() {
-        if (!initialized_)
-        {
+        if (!initialized_) {
             Debug.Log("PhotoCapture not initialized.");
             return;
         }
         // Activate the camera
-        photoCaptureObject_.StartPhotoModeAsync(cameraParameters_, delegate (UnityEngine.Windows.WebCam.PhotoCapture.PhotoCaptureResult result)
-        {
+        photoCaptureObject_.StartPhotoModeAsync(cameraParameters_, 
+                    delegate (UnityEngine.Windows.WebCam.PhotoCapture.PhotoCaptureResult result) {
             // Take a picture
             Debug.Log("Take Photo!");                
             photoCaptureObject_.TakePhotoAsync(OnPhotoCaptured);
@@ -79,9 +66,9 @@ public class PhotoCapture : MonoBehaviour {
     }
 
 
-    private void OnPhotoCaptured(UnityEngine.Windows.WebCam.PhotoCapture.PhotoCaptureResult result, UnityEngine.Windows.WebCam.PhotoCaptureFrame photoCaptureFrame) {
+    private void OnPhotoCaptured(UnityEngine.Windows.WebCam.PhotoCapture.PhotoCaptureResult result, 
+                                 UnityEngine.Windows.WebCam.PhotoCaptureFrame photoCaptureFrame) {
         List<byte> imageBufferList = new List<byte>();
-        photoTaken = true;
 
         // Copy the raw IMFMediaBuffer data into our empty byte list.
         photoCaptureFrame.CopyRawImageDataIntoBuffer(imageBufferList);
@@ -90,30 +77,15 @@ public class PhotoCapture : MonoBehaviour {
         Matrix4x4 projM = new Matrix4x4();
         photoCaptureFrame.TryGetCameraToWorldMatrix(out c2wM);
         photoCaptureFrame.TryGetProjectionMatrix(out projM);
-
-        string imageDataBase64 = Convert.ToBase64String(imageBufferList.ToArray());
-        Debug.Log("Len image: " + System.Text.Encoding.UTF8.GetByteCount(imageDataBase64));
-
-        ImageObject imageObject = new ImageObject();
-        imageObject.c2wM = c2wM;
-        imageObject.projM = projM;
-        imageObject.imageDataBase64 = imageDataBase64;
+ 
+        Serialization.ImageObject imageObject = new Serialization.ImageObject(c2wM, projM, imageBufferList);
 
 #if !UNITY_EDITOR
-        socket.SendImageData(imageBufferList);
-        SaveFile(imageObject);
+        socket.sendImageData(imageObject);
+        Debug.Log("Sending image data to Python socket...");
+
 #endif
     }
-
-     public void SaveFile(ImageObject io)
-     {
-        System.IO.Directory.CreateDirectory(System.IO.Path.Combine(Application.persistentDataPath, "metadata.txt"));
-        string data = io.c2wM.ToString() + "," + io.projM.ToString();
-        Debug.Log("Meta data: " + data);
-        File.WriteAllText(data, "metadata.txt");
-        Debug.Log("Data saved.");
-     }
- 
 
     private void OnStoppedPhotoMode(UnityEngine.Windows.WebCam.PhotoCapture.PhotoCaptureResult result) {
         photoCaptureObject_.Dispose();
