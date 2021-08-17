@@ -15,7 +15,7 @@ from PIL import Image
 
 class UIOptimizer:
     def __init__(self, b64img, meta_data, imgDim, panelDim, num_panels, occlusion, colorfulness, edgeness,
-                 fitts_law, ce, muscle_act, rula, arm_proper_length=33, forearm_hand_length=46, spacing=10):
+                 fitts_law, ce, muscle_act, rula, arm_proper_length=33, forearm_hand_length=46, spacing=8):
         self.imgDim = imgDim
         self.halfImgDim = imgDim / 2
         self.num_panels = num_panels
@@ -702,14 +702,14 @@ def test_file():
 
 def main():
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    img_buffer_file = dir_path + "\\input_images\\context_img_buff_1629133512.log"
-    img_meta_file = dir_path + "\\input_images\\context_img_1629133512.log"
-    img_file = dir_path + "\\input_images\\context_img_1629133512.png"
+    img_buffer_file = dir_path + "\\input_images\\context_img_buff_1623145003.log"
+    img_meta_file = dir_path + "\\input_images\\context_img_1623145003.log"
+    img_file = dir_path + "\\input_images\\context_img_1623145003.png"
     img = cv2.imread(img_file)
     f = open(img_buffer_file, 'r')
     byte_arr = bytes(f.read(), 'utf-8')
     out_file = dir_path + '\\output_images\\' + 'out.png'
-    print('Saving info to %s' % out_file)
+    print('Saving info to: %s' % out_file)
 
     with open(img_meta_file, 'r') as f:
         meta_data = f.read()
@@ -723,8 +723,8 @@ def main():
 
     colorfulness = 0.0
     edgeness = 0.0
-    fitts_law = 0.33
-    ce = 0.0
+    fitts_law = 0.0
+    ce = 0.33
     muscle_act = 0.33
     rula = 0.33
 

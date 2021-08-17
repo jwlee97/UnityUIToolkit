@@ -15460,21 +15460,21 @@ MonoBehaviour:
   cognitiveLoadSlider: {fileID: 1678546569}
   enableOcclusion: {fileID: 207471548}
   enableColorHarmony: {fileID: 992201063}
-  imageBufferFile: context_img_buff_1629133512.log
-  imageMetaFile: context_img_1629133512.log
+  imageBufferFile: context_img_buff_1623145003.log
+  imageMetaFile: context_img_1623145003.log
   constraints:
   - name: Messages
     height: 0.1
     width: 0.15
   - name: Email
-    height: 0.05
+    height: 0.1
     width: 0.1
   - name: Weather
     height: 0.2
     width: 0.1
   - name: Photos
-    height: 0.1
-    width: 0.2
+    height: 0.15
+    width: 0.1
 --- !u!4 &1866679974 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 487438, guid: 02baaf1bd178fdb4d841e92a9f71d6e5,
