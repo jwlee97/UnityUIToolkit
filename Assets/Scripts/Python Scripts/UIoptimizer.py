@@ -654,85 +654,43 @@ class UIOptimizer:
         reserve_threshold = 250
         muscle_activation_reserve = pose[1] + pose[2] / reserve_threshold
         return muscle_activation_reserve
-    
-
-
-def test_file():
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    img_buffer_file = dir_path + "\\input_images\\context_img_buff_1629133512.log"
-    img_meta_file = dir_path + "\\input_images\\context_img_1629133512.log"
-    f = open(img_buffer_file, 'r')
-    byte_arr = bytes(f.read(), 'utf-8')
-    out_file = dir_path + '\\output_images\\' + 'out.txt'
-    print('Saving info to %s' % out_file)
-
-    with open(img_meta_file, "r") as f:
-        meta_data = f.read()
-
-    img_dim = [504, 896]
-    panel_dim = [(0.1, 0.15), (0.05, 0.1), (0.2, 0.1), (0.1, 0.2)]
-    occlusion = True
-    num_panels = 4
-    color_harmony_template = 93.6
-
-    colorfulness = 0.6
-    edgeness = 0.2
-    fitts_law = 0.2
-    ce = 0.0
-    muscle_act = 0.0
-    rula = 0.0
-
-    with open(out_file, "w") as f:
-        opt = UIOptimizer(byte_arr, meta_data, np.array(img_dim), np.array(panel_dim), num_panels, occlusion, 
-                          colorfulness, edgeness, fitts_law, ce, muscle_act, rula)
-        
-        (labelPos, uvPlaces) = opt.place()
-        (labelColors, textColors) = opt.color(uvPlaces)
-        colors = opt.colorHarmony(labelColors[0], color_harmony_template)
-   
-        for i in range(num_panels):
-            dim_str = str(panel_dim[i][0]) + ',' + str(panel_dim[i][1])
-            pos_str = str(labelPos[i][0]) + ',' + str(labelPos[i][1]) + ',' + str(labelPos[i][2])
-            color_str = str(colors[i][0]) + ',' + str(colors[i][1]) + ',' + str(colors[i][2])
-            text_color_str = str(textColors[i][0]) + ',' + str(textColors[i][1]) + ',' + str(textColors[i][2])
-
-            line =  dim_str + ';' + pos_str + ';' + color_str + ';' + text_color_str + '\n'
-            f.write(line)
 
 
 def main():
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    img_buffer_file = dir_path + "\\input_images\\context_img_buff_1623145003.log"
-    img_meta_file = dir_path + "\\input_images\\context_img_1623145003.log"
-    img_file = dir_path + "\\input_images\\context_img_1623145003.png"
+    img_buffer_file = dir_path + "\\input_images\\context_img_buff_1629213409.log"
+    img_meta_file = dir_path + "\\input_images\\context_img_1629213409.log"
+    img_file = dir_path + "\\input_images\\context_img_1629213409.png"
     img = cv2.imread(img_file)
     f = open(img_buffer_file, 'r')
     byte_arr = bytes(f.read(), 'utf-8')
-    out_file = dir_path + '\\output_images\\' + 'out.png'
-    print('Saving info to: %s' % out_file)
+    out_img = dir_path + '\\output_images\\' + 'out.png'
+    out_txt = dir_path + '\\output_images\\' + 'out.txt'
+    print('Saving output image to: %s' % out_img)
+    print('Saving output file to: %s' % out_txt)
 
     with open(img_meta_file, 'r') as f:
         meta_data = f.read()
 
     img_dim = [504, 896]
-    panel_dim = [(0.1, 0.15), (0.1, 0.1), (0.2, 0.1), (0.15, 0.1)]
+    panel_dim = [(0.1, 0.1), (0.2, 0.2), (0.1, 0.3)]
     occlusion = False
     color_harmony = True
-    num_panels = 4
+    num_panels = 3
     color_harmony_template = 93.6
 
     colorfulness = 0.0
-    edgeness = 0.0
+    edgeness = 1.0
     fitts_law = 0.0
-    ce = 0.33
-    muscle_act = 0.33
-    rula = 0.33
+    ce = 0.0
+    muscle_act = 0.0
+    rula = 0.0
 
     opt = UIOptimizer(byte_arr, meta_data, np.array(img_dim), np.array(panel_dim), num_panels, occlusion, 
                       colorfulness, edgeness, fitts_law, ce, muscle_act, rula)
 
     (labelPos, uvPlace) = opt.weighted_optimization()
-    (labelColor, textColor) = opt.color(uvPlace)
+    (labelColor, textColors) = opt.color(uvPlace)
 
     if color_harmony == True:
         colors =  opt.colorHarmony(labelColor[0], color_harmony_template)
@@ -747,7 +705,16 @@ def main():
         BGR = (colors[i][2], colors[i][1], colors[i][1])
         cv2.rectangle(img, (min_x, min_y), (max_x, max_y), BGR, -1)
     
-    cv2.imwrite(out_file, img)
+    cv2.imwrite(out_img, img)
+
+    with open(out_txt, "w") as f:
+        dim_str = str(panel_dim[i][0]) + ',' + str(panel_dim[i][1])
+        pos_str = str(labelPos[i][0]) + ',' + str(labelPos[i][1]) + ',' + str(labelPos[i][2])
+        color_str = str(colors[i][0]) + ',' + str(colors[i][1]) + ',' + str(colors[i][2])
+        text_color_str = str(textColors[i][0]) + ',' + str(textColors[i][1]) + ',' + str(textColors[i][2])
+
+        line =  dim_str + ';' + pos_str + ';' + color_str + ';' + text_color_str + '\n'
+        f.write(line)
 
 
 if __name__ == "__main__":
