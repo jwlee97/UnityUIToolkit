@@ -38,6 +38,11 @@ Assets/Scripts/Python Scripts/input_images folder). Specify the number of panels
 For each panel, you may input the application type and dimensions (in meters).
 *Note: If no buffer image file is specified, then the toolkit will use the Unity environment (e.g. the office/classroom/lab virtual environment) as the input.*
 
+<p align="center">
+  <img src="https://github.com/jwlee97/UnityUIToolkit/blob/master/SampleImages/sceneview.png" />
+  <img src="https://github.com/jwlee97/UnityUIToolkit/blob/master/SampleImages/menu.png" />
+</p>
+
 ### Step 3: Send constraints to socket
 When all constraints have been specified, open and run python_server.py located in the Assets/Scripts/Python Scripts folder. Run the Unity scene.
 
@@ -45,13 +50,25 @@ When all constraints have been specified, open and run python_server.py located 
 Run the Unity simulation. In the game mode window, specify the weights of each objective function using the sliders.
 Ticking 'Enable occlusion' will allow the panels to overlap, and ticking 'Enable color harmony' will allow the toolkit to color harmonize the panels in the UI layout.
 
+<p align="center">
+  <img src="https://github.com/jwlee97/UnityUIToolkit/blob/master/SampleImages/constraints.PNG" />
+</p>
+
 ### Step 5: Submit Constraints
 Once complete, press 'Submit Constraints'. The toolkit will take several seconds to optimize the layout and transmit the data over the socket.
 The python script will output the optimal locations for each panel during the process. 
 
+<p align="center">
+  <img src="https://github.com/jwlee97/UnityUIToolkit/blob/master/SampleImages/python_script.png" width="600"/>
+</p>
+
 ### Step 6: Show Optimal UI
 Once the Python server has sent the optimal locations over the socket, press 'Show Optimal UI' and choose a cognitive load > 0.0 using the slider on the Unity toolkit menu.
 You should be able to see the UI layout in Unity in various environments by changing the value for cognitive load.
+
+<p align="center">
+  <img src="https://github.com/jwlee97/UnityUIToolkit/blob/master/SampleImages/classroom.jpg" width="600"/>
+</p>
 
 ## Optional Steps
 
@@ -63,6 +80,14 @@ and wait for the Python script to finish optimizing and transmitting values back
 If desired, you may also see the UI layout projected onto the initial user environment image by running UIoptimizer.py in the Assets\Scripts\Python Scripts folder.
 Change the image file, panel sizes, and objective function weights in main() to adjust the UI layout. The script will output the layout image as \output_images\out.png.
 
+<p align="center">
+  <img src="https://github.com/jwlee97/UnityUIToolkit/blob/master/SampleImages/office_UI.PNG" width="600"/>
+</p>
+
 ### Preference Learning
 To launch the preference learning application in a separate window, press the 'run preference learning' button. The 'preference' image in the first iteration will be the output of the weighted sum optimization using the weights specified in the Unity toolkit. 
 At each iteration, choose the preferred UI layout - this will become the 'preference' image for the next iteration, and the application will suggest a new layout as the 'suggestion'. When finished, press 'quit'. The script will display the optimized UI layout when finished in Unity, and output the optimal locations of each panel in world coordinates.
+
+<p align="center">
+  <img src="https://github.com/jwlee97/UnityUIToolkit/blob/master/SampleImages/preflearning_iteration.png" width="600"/>
+</p>
