@@ -1,11 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
-using Newtonsoft.Json;
 
 public static class Serialization {
 
@@ -45,9 +41,8 @@ public static class Serialization {
         }
     }
 
-    
     [Serializable]
-    public class ComputePositionRequest {
+    public class Request {
         public string imageBufferFile;
         public string imageMetaFile;
         public int numPanels;
@@ -61,9 +56,25 @@ public static class Serialization {
         public float muscleActivation;
         public float rula;
 
-        public ComputePositionRequest(string imageBufferFile, string imageMetaFile, int numPanels, UITool.PanelConstraints[] constraints, bool occlusion,
-                                      bool colorHarmony, float colorfulness, float edgeness, float fittsLaw,
-                                      float ce, float muscleActivation, float rula) {
+        public Request(int numPanels, UITool.PanelConstraints[] constraints, bool occlusion, bool colorHarmony, float colorfulness,
+                       float edgeness, float fittsLaw, float ce, float muscleActivation, float rula) {
+            this.imageBufferFile = "";
+            this.imageMetaFile = "";
+            this.numPanels = numPanels;
+            this.constraints = constraints;
+            this.occlusion = occlusion;
+            this.colorHarmony = colorHarmony;
+            this.colorfulness = colorfulness;
+            this.edgeness = edgeness;
+            this.fittsLaw = fittsLaw;
+            this.ce = ce;
+            this.muscleActivation = muscleActivation;
+            this.rula = rula;
+        }
+
+        public Request(string imageBufferFile, string imageMetaFile, int numPanels, UITool.PanelConstraints[] constraints,
+                       bool occlusion, bool colorHarmony, float colorfulness, float edgeness, float fittsLaw, float ce,
+                       float muscleActivation, float rula) {
             this.imageBufferFile = imageBufferFile;
             this.imageMetaFile = imageMetaFile;
             this.numPanels = numPanels;

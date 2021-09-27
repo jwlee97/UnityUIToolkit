@@ -1,12 +1,12 @@
-using UnityEngine;
-using UnityEngine.UI;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System;
 using Microsoft.MixedReality.Toolkit.Input;
 using Microsoft.MixedReality.Toolkit.UI;
 using Newtonsoft.Json;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class UITool : MonoBehaviour {
     [Serializable]
@@ -31,15 +31,14 @@ public class UITool : MonoBehaviour {
     public float[,] panelSizes;
     public PanelConstraints[] constraints;
 
+    private PythonNetworking pythonNetworking;
     private GameObject[] panels;
     private List<string> panelData;
     private List<string> prefLearningData;
     private int numPanels;
     private bool UIGenerated;
-   
-    private PythonNetworking _pythonNetworking;
-    private bool _clientStopped;
-    private bool _requestPending;
+    private bool imageFileInput;
+    private string defaultBufferFile;
     
     private GameObject instructionMenu;
     private GameObject labScene;
@@ -47,16 +46,15 @@ public class UITool : MonoBehaviour {
     private GameObject officeScene;
 
     public void Start() {
-        UIGenerated = false;
-        _pythonNetworking = new PythonNetworking();
+        pythonNetworking = new PythonNetworking();
         numPanels = constraints.Length;
         panelSizes = new float[numPanels, 2];
+        UIGenerated = false;
+        imageFileInput = false;
+        defaultBufferFile = "";
 
-        if (imageBufferFile == null)
-            imageBufferFile = "context_img_buff_1629133512.log";
-        
-        if (imageMetaFile == null)
-            imageMetaFile = "context_img_1629133512.log";
+        if (imageBufferFile != "")
+            imageFileInput = true;
 
         instructionMenu = GameObject.FindGameObjectWithTag("InstructionMenu");
         labScene = GameObject.FindGameObjectWithTag("labScene");
@@ -75,13 +73,13 @@ public class UITool : MonoBehaviour {
 
     public void SubmitConstraints() {
         Debug.Log("Submitting constraints...");
-        StartCoroutine(CreateRequest());
+        StartCoroutine(CreateRequest("P"));
     }
 
     public void StartPreferenceLearning() {
         if (panelData != null) {
             Debug.Log("Starting preference learning application...");
-            StartCoroutine(CreatePrefLearningRequest());
+            StartCoroutine(CreateRequest("L"));
         } else {
             Debug.Log("Please submit constraints and press 'show optimal UI'.");
         }
@@ -92,7 +90,7 @@ public class UITool : MonoBehaviour {
         int i = 0;
         
         if (panelData != null) {
-            Debug.Log("Creating UI.");
+            Debug.Log("Creating UI!");
             panels = new GameObject[numPanels];
             UIGenerated = true;
 
@@ -108,28 +106,38 @@ public class UITool : MonoBehaviour {
             Debug.Log("Please wait: Python script still generating optimal UI.");
         }
     }
-   
-    private IEnumerator CreateRequest() {
-        Debug.Log("Creating request...");
-        var request = new Serialization.ComputePositionRequest(imageBufferFile, imageMetaFile, numPanels, constraints, enableOcclusion.isOn, enableColorHarmony.isOn,
-                                                               colorfulnessSlider.value, edgenessSlider.value, fittsLawSlider.value,
-                                                               ceSlider.value, muscleActivationSlider.value, rulaSlider.value);
-        var requestJson = JsonUtility.ToJson(request);
-        _pythonNetworking.PerformRequest("P", requestJson);
-        yield return new WaitUntil(() => _pythonNetworking.requestResult != null);
-        panelData = JsonConvert.DeserializeObject<List<string>>(_pythonNetworking.requestResult);
-    }
 
-    private IEnumerator CreatePrefLearningRequest() {
-        Debug.Log("Creating request for preference learning application...");
-        var request = new Serialization.ComputePositionRequest(imageBufferFile, imageMetaFile, numPanels, constraints, enableOcclusion.isOn, enableColorHarmony.isOn,
-                                                               colorfulnessSlider.value, edgenessSlider.value, fittsLawSlider.value,
-                                                               ceSlider.value, muscleActivationSlider.value, rulaSlider.value);
+    private Serialization.Request _CreateRequest() {
+        Debug.Log("Creating request...");
+        Serialization.Request request = null;
+        if (imageFileInput == true) {
+            request = new Serialization.Request(imageBufferFile, imageMetaFile, numPanels, constraints, enableOcclusion.isOn, enableColorHarmony.isOn,
+                                                colorfulnessSlider.value, edgenessSlider.value, fittsLawSlider.value,
+                                                ceSlider.value, muscleActivationSlider.value, rulaSlider.value);
+        } else {
+            if (defaultBufferFile == "") {
+                defaultBufferFile = "office_buff.log";
+                officeScene.SetActive(true);
+            }
+            request = new Serialization.Request(defaultBufferFile, "meta.log", numPanels, constraints, enableOcclusion.isOn, enableColorHarmony.isOn,
+                                                colorfulnessSlider.value, edgenessSlider.value, fittsLawSlider.value,
+                                                ceSlider.value, muscleActivationSlider.value, rulaSlider.value);
+        }
+        return request;
+    }
+   
+    private IEnumerator CreateRequest(string type) {
+        Serialization.Request request = _CreateRequest();
         var requestJson = JsonUtility.ToJson(request);
-        _pythonNetworking.PerformRequest("L", requestJson);
-        yield return new WaitUntil(() => _pythonNetworking.requestResult != null);
-        prefLearningData = JsonConvert.DeserializeObject<List<string>>(_pythonNetworking.requestResult);
-        UpdatePanels(prefLearningData);
+        pythonNetworking.PerformRequest(type, requestJson);
+        yield return new WaitUntil(() => pythonNetworking.requestResult != null);
+
+        if (type == "P") {
+            panelData = JsonConvert.DeserializeObject<List<string>>(pythonNetworking.requestResult);
+        } else {
+            prefLearningData = JsonConvert.DeserializeObject<List<string>>(pythonNetworking.requestResult);
+            UpdatePanels(prefLearningData);
+        }
     }
 
     private void UpdatePanels(List<string> data) {
@@ -165,18 +173,18 @@ public class UITool : MonoBehaviour {
         Color panelColor = new Color(float.Parse(spl[2].Split(',')[0])/255, float.Parse(spl[2].Split(',')[1])/255, float.Parse(spl[2].Split(',')[2])/255);
         Color textColor = new Color(float.Parse(spl[3].Split(',')[0])/255, float.Parse(spl[3].Split(',')[1])/255, float.Parse(spl[3].Split(',')[2])/255);
 
-        GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        cube.tag = "Panel";
+        GameObject panel = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        panel.tag = "Panel";
     
-        cube.transform.position = new Vector3(panelPos[1], panelPos[0], 0.5f);
-        cube.transform.localScale = new Vector3(width, height, 0.0001f);
-        var cubeRenderer = cube.GetComponent<Renderer>();
-        cubeRenderer.material.SetColor("_Color", panelColor);
+        panel.transform.position = new Vector3(panelPos[1], panelPos[0], 0.5f);
+        panel.transform.localScale = new Vector3(width, height, 0.0001f);
+        var panelRenderer = panel.GetComponent<Renderer>();
+        panelRenderer.material.SetColor("_Color", panelColor);
 
         GameObject label = new GameObject();
-        label.transform.parent = cube.transform;
-        label.transform.localPosition = cube.transform.localPosition;
-        label.transform.localScale = new Vector3(cube.transform.localScale.y, cube.transform.localScale.x, 1.0f);
+        label.transform.parent = panel.transform;
+        label.transform.localPosition = panel.transform.localPosition;
+        label.transform.localScale = new Vector3(panel.transform.localScale.y, panel.transform.localScale.x, 1.0f);
 
         RectTransform rectTransform = label.AddComponent<RectTransform>();
         rectTransform.anchoredPosition = new Vector2(0, 0);
@@ -186,7 +194,7 @@ public class UITool : MonoBehaviour {
         textMesh.color = textColor;
         textMesh.anchor = TextAnchor.UpperCenter;
 
-        return cube;
+        return panel;
     }
 
     public void ChangeLOD() {
@@ -213,15 +221,18 @@ public class UITool : MonoBehaviour {
 
             if (value < 4) {
                 officeScene.SetActive(true);
+                defaultBufferFile = "office_buff.log";
             } else if (value >= 4 && value < 7) {
                 classScene.SetActive(true);
+                defaultBufferFile = "classroom_buff.log";
             } else {
                 labScene.SetActive(true);
+                defaultBufferFile = "lab_buff.log";
             }
         }
     }
 
     private void OnDestroy() {
-        _pythonNetworking.StopClient();
+        pythonNetworking.StopClient();
     }
 }

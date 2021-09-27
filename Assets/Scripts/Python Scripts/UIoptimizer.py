@@ -14,13 +14,14 @@ from PIL import Image
 
 
 class UIOptimizer:
-    def __init__(self, b64img, meta_data, imgDim, panelDim, num_panels, occlusion, colorfulness, edgeness,
+    def __init__(self, b64img, meta_data, imgDim, panelDim, num_panels, occlusion, colorHarmony, colorfulness, edgeness,
                  fitts_law, ce, muscle_act, rula, arm_proper_length=33, forearm_hand_length=46, spacing=8):
         self.imgDim = imgDim
         self.halfImgDim = imgDim / 2
         self.num_panels = num_panels
 
         self.occlusion = occlusion # True if occlusion is enabled
+        self.colorHarmony = colorHarmony # True if color harmony is enabled
         self.colorfulness_weight = colorfulness
         self.edgeness_weight = edgeness
         self.fittslaw_weight = fitts_law
@@ -260,7 +261,11 @@ class UIOptimizer:
         # Convert patch pixels to HSV
         RGB = imgPatch.getdata()
         RGB_s = np.divide(RGB, 255.0)
-        HSV = colors.rgb_to_hsv( RGB_s )
+    
+        if len(RGB_s[0]) > 3:
+            RGB_s = RGB_s[...,:-1]
+
+        HSV = colors.rgb_to_hsv(RGB_s)
 
         # Find histogram hue peak
         nBins = 100
@@ -282,7 +287,7 @@ class UIOptimizer:
         return domColor
 
 
-    def colorHarmony(self, RGB, angle_size):
+    def getColorHarmony(self, RGB, angle_size):
         ret = []
 
         RGB_s = np.divide(RGB, 255.0)
@@ -446,7 +451,7 @@ class UIOptimizer:
 
     def strArr2mat(self, strArr):
         arr = self.strArr2numArr(strArr)
-        m =  arr.reshape(4,4)
+        m = arr.reshape(4,4)
         return m
     
 
@@ -658,9 +663,9 @@ class UIOptimizer:
 
 def main():
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    img_buffer_file = dir_path + "\\input_images\\context_img_buff_1629213409.log"
-    img_meta_file = dir_path + "\\input_images\\context_img_1629213409.log"
-    img_file = dir_path + "\\input_images\\context_img_1629213409.png"
+    img_buffer_file = dir_path + "\\input_images\\office_buff.log"
+    img_meta_file = dir_path + "\\input_images\\meta.log"
+    img_file = dir_path + "\\input_images\\office.png"
     img = cv2.imread(img_file)
     f = open(img_buffer_file, 'r')
     byte_arr = bytes(f.read(), 'utf-8')
@@ -686,14 +691,15 @@ def main():
     muscle_act = 0.0
     rula = 0.0
 
-    opt = UIOptimizer(byte_arr, meta_data, np.array(img_dim), np.array(panel_dim), num_panels, occlusion, 
-                      colorfulness, edgeness, fitts_law, ce, muscle_act, rula)
+    opt = UIOptimizer(byte_arr, meta_data, np.array(img_dim), np.array(panel_dim), num_panels, occlusion,
+                      color_harmony, colorfulness, edgeness, fitts_law, ce, muscle_act, rula)
 
     (labelPos, uvPlace) = opt.weighted_optimization()
+    print(uvPlace)
     (labelColor, textColors) = opt.color(uvPlace)
 
     if color_harmony == True:
-        colors =  opt.colorHarmony(labelColor[0], color_harmony_template)
+        colors =  opt.getColorHarmony(labelColor[0], color_harmony_template)
     else:
         colors = labelColor
 

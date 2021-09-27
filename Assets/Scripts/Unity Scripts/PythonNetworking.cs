@@ -58,7 +58,7 @@ public class PythonNetworking {
         if (request == null) {
             requestSocket.SendFrame(endpoint);
         } else {
-            Debug.Log(request);
+            Debug.Log("Sending to Python server: " + request);
             requestSocket.SendMoreFrame(endpoint);
             requestSocket.SendFrame(request);
         }
