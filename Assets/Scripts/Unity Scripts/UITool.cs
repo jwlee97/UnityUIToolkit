@@ -33,6 +33,7 @@ public class UITool : MonoBehaviour {
 
     private GameObject[] panels;
     private List<string> panelData;
+    private List<string> prefLearningData;
     private int numPanels;
     private bool UIGenerated;
    
@@ -77,6 +78,15 @@ public class UITool : MonoBehaviour {
         StartCoroutine(CreateRequest());
     }
 
+    public void StartPreferenceLearning() {
+        if (panelData != null) {
+            Debug.Log("Starting preference learning application...");
+            StartCoroutine(CreatePrefLearningRequest());
+        } else {
+            Debug.Log("Please submit constraints and press 'show optimal UI'.");
+        }
+    }
+
     public void CreateUI() {
         instructionMenu.SetActive(false);
         int i = 0;
@@ -108,7 +118,34 @@ public class UITool : MonoBehaviour {
         _pythonNetworking.PerformRequest("P", requestJson);
         yield return new WaitUntil(() => _pythonNetworking.requestResult != null);
         panelData = JsonConvert.DeserializeObject<List<string>>(_pythonNetworking.requestResult);
-        Debug.Log("Sending UI constraints to Python socket...");
+    }
+
+    private IEnumerator CreatePrefLearningRequest() {
+        Debug.Log("Creating request for preference learning application...");
+        var request = new Serialization.ComputePositionRequest(imageBufferFile, imageMetaFile, numPanels, constraints, enableOcclusion.isOn, enableColorHarmony.isOn,
+                                                               colorfulnessSlider.value, edgenessSlider.value, fittsLawSlider.value,
+                                                               ceSlider.value, muscleActivationSlider.value, rulaSlider.value);
+        var requestJson = JsonUtility.ToJson(request);
+        _pythonNetworking.PerformRequest("L", requestJson);
+        yield return new WaitUntil(() => _pythonNetworking.requestResult != null);
+        prefLearningData = JsonConvert.DeserializeObject<List<string>>(_pythonNetworking.requestResult);
+        UpdatePanels(prefLearningData);
+    }
+
+    private void UpdatePanels(List<string> data) {
+        GameObject[] panels = GameObject.FindGameObjectsWithTag("Panel");
+        int i = 0;
+
+        foreach(GameObject p in panels) {
+            string[] spl = data[i].Split(';');
+            float[] panelPos = {float.Parse(spl[0].Split(',')[1]), float.Parse(spl[0].Split(',')[0]), float.Parse(spl[0].Split(',')[2])};
+            Color panelColor = new Color(float.Parse(spl[1].Split(',')[0])/255, float.Parse(spl[1].Split(',')[1])/255, float.Parse(spl[1].Split(',')[2])/255);
+
+            p.transform.position = new Vector3(panelPos[1], panelPos[0], 0.5f);
+            var panelRenderer = p.GetComponent<Renderer>();
+            panelRenderer.material.SetColor("_Color", panelColor);
+            i++;
+        }
     }
 
     private void DestroyPanels() {
